@@ -1,0 +1,18 @@
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless
+
+# Webpack directories
+.webpack
+
+# docker files
+.cache
+.fonts
+.pki
+error.png
+
+# output files
+dist
