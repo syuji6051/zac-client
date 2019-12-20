@@ -1,12 +1,16 @@
 {
-  "name": "zac-client",
+  "name": "@sokamura-terrasky/zac-client",
   "version": "1.0.0",
   "main": "dist/index.js",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "ts-node src/execute.ts",
     "build": "tsc"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "types": "./src/@types/index",
   "devDependencies": {
     "@types/puppeteer": "^2.0.0",
     "ts-node": "^8.5.4",
