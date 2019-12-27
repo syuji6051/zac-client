@@ -17,6 +17,6 @@ export const workList = [
   { code: '999994', workDiv: workDiv.systemManagement },
   { code: '999995', workDiv: workDiv.bscDevelop },
   { code: '999996', workDiv: workDiv.bscMaintenance },
-  { code: '999997', workDiv: workDiv.markingWork },
+  { code: '999997', workDiv: workDiv.meeting },
   { code: '999998', workDiv: workDiv.holiday }
 ];

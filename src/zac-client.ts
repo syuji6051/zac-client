@@ -137,7 +137,7 @@ export default class ZacClient {
     }
   }
 
-  async workInput(window: puppeteer.Frame, orderCode: string, freeText: string, hour: number, minute: number, rowNum: number) {
+  async workInput(window: puppeteer.Frame, orderCode: string, freeText: string = '', hour: number, minute: number, rowNum: number) {
     console.log('order code execute', orderCode, 'rowNumber', rowNum);
     
     const workCode = getWorkDiv(orderCode);

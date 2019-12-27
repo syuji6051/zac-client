@@ -3,12 +3,11 @@ import zacClient from './zac-client';
 
 const works = [{
   code: '0402824',
-  text: 'リリース作業 打合せ',
+  text: 'Apple課金レビュー・リリース準備',
   hour: 6,
   minute: 30
 }, {
-  code: '999998',
-  text: 'チームミーティング',
+  code: '999997',
   hour: 1,
   minute: 0
 }];
@@ -23,7 +22,7 @@ const works = [{
   const zac = new zacClient(page, '0070', 'Syuji6051');
   try {
     await zac.login();
-    await zac.nippou(12, 19, works);
+    await zac.nippou(12, 24, works);
   } catch (err) {
     console.log(err);
     console.log('zac登録失敗！');
