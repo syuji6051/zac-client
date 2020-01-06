@@ -46,7 +46,7 @@ export default class ZacClient {
     console.log('login success');
   }
 
-  async nippou(month: number, day: number, works: work[]) {
+  async nippou(year: number, month: number, day: number, works: work[]) {
     await this.page.goto(`${ZAC_BASE_URL}/b/asp/Shinsei/Nippou`);
     await this.page.waitForSelector('#classic_window');
     console.log('nippou opened');
@@ -59,6 +59,11 @@ export default class ZacClient {
       console.log('classic window not found');
       return;
     }
+
+    await window.waitForSelector('input[name="year_schedule"]');
+    const yearInput = await window.$(`input[name="year_schedule"]`);
+    await yearInput.click({ clickCount: 3 });
+    await yearInput.type(String(year));
 
     await window.waitForXPath(`//select[@name='month_schedule']`);
     await window.select('select[name="month_schedule"]', month.toString());

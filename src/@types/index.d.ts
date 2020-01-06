@@ -10,6 +10,6 @@ export type Work = {
 export class ZacClient {
   constructor(Page: puppeteer.Page, userId: String, password: String);
   login(): Promise<void>;
-  nippou(month: number, day: number, works: Work[]): Promise<void>;
+  nippou(year: number, month: number, day: number, works: Work[]): Promise<void>;
 }
 

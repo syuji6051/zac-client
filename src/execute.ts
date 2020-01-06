@@ -22,7 +22,7 @@ const works = [{
   const zac = new zacClient(page, '0070', 'Syuji6051');
   try {
     await zac.login();
-    await zac.nippou(12, 24, works);
+    await zac.nippou(2019, 12, 25, works);
   } catch (err) {
     console.log(err);
     console.log('zac登録失敗！');
