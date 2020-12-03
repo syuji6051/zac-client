@@ -5,15 +5,29 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node src/execute.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "dev": "nodemon",
+    "ts-node": "ts-node"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
   "types": "./src/@types/index",
+  "dependencies": {
+    "ajv": "^6.12.6",
+    "crypto-js": "^4.0.0",
+    "puppeteer-core": "^2.0.0",
+    "winston": "^3.3.3"
+  },
   "devDependencies": {
     "@types/puppeteer": "^2.0.0",
     "@types/puppeteer-core": "^2.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.7.0",
+    "@typescript-eslint/parser": "^4.7.0",
+    "eslint": "^7.13.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "nodemon": "^2.0.6",
     "puppeteer": "^2.0.0",
     "ts-node": "^8.5.4",
     "tslint": "^5.20.1",
@@ -21,9 +35,5 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1",
     "typescript": "^3.7.4"
-  },
-  "dependencies": {
-    "crypto-js": "^4.0.0",
-    "puppeteer-core": "^2.0.0"
   }
 }

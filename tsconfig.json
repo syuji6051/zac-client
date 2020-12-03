@@ -5,7 +5,9 @@
     "module": "commonjs",
     "target": "es6",
     "moduleResolution": "node",
-    "removeComments": true
+    "removeComments": true,
+    "esModuleInterop": true,
+    "baseUrl": "./",
   },
   "include": [
     "./src/**/*"

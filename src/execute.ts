@@ -1,32 +1,43 @@
-import * as puppeteer from 'puppeteer';
-import zacClient from './zac-client';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import puppeteer from 'puppeteer';
+import ZacClient from './zac-client';
 
-const works = [{
-  code: '0402824',
-  text: 'Apple課金レビュー・リリース準備',
-  hour: 6,
-  minute: 30
-}, {
-  code: '999997',
-  hour: 1,
-  minute: 0
-}];
+const IS_DOCKER = process.env.IS_DOCKER === 'true';
+console.log('start');
 
 (async () => {
-  const browser = await puppeteer.launch({
-    headless: false
+  console.log(IS_DOCKER);
+  const browser = await puppeteer.launch(IS_DOCKER ? {
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+    ],
+  } : {
+    headless: false,
   });
 
   console.log('call start');
-  const page = await browser.newPage();
-  const zac = new zacClient(page, '0070', 'Syuji6051');
+  const zac = new ZacClient(browser, '', '', true);
   try {
-    await zac.login();
-    await zac.nippou(2019, 12, 25, works);
+    await zac.register({
+      workDate: new Date('2020/12/01'),
+      workStartHour: 9,
+      workStartMinute: 30,
+      workEndHour: 18,
+      workEndMinute: 0,
+      workBreakHour: 1,
+      workBreakMinute: 0,
+      works: [{
+        code: '999998',
+        hour: 7,
+        minute: 30,
+      }],
+    });
   } catch (err) {
     console.log(err);
     console.log('zac登録失敗！');
   } finally {
-    // await page.close();
+    await browser.close();
   }
 })();

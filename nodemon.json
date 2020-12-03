@@ -1,0 +1,10 @@
+{
+  "watch": [
+    "src"
+  ],
+  "ext": "ts",
+  "ignore": [
+    "tests/**/*.ts"
+  ],
+  "exec": "yarn run ts-node ./src/execute.ts"
+}
