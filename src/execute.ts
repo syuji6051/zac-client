@@ -18,26 +18,29 @@ console.log('start');
   });
 
   console.log('call start');
-  const zac = new ZacClient(browser, '', '', true);
+  const { TENANT_ID, USER_ID, PASSWORD } = process.env;
+  const zac = new ZacClient(
+    browser, TENANT_ID, USER_ID, PASSWORD, true,
+  );
   try {
     await zac.register({
-      workDate: new Date('2020/12/01'),
+      workDate: new Date('2021/02/10'),
       workStartHour: 9,
-      workStartMinute: 30,
-      workEndHour: 18,
-      workEndMinute: 0,
-      workBreakHour: 1,
-      workBreakMinute: 0,
+      workStartMinute: 15,
+      workEndHour: 16,
+      workEndMinute: 45,
+      workBreakHour: 0,
+      workBreakMinute: 45,
       works: [{
-        code: '999998',
-        hour: 7,
-        minute: 30,
+        code: '0503707',
+        hour: 6,
+        minute: 45,
       }],
     });
   } catch (err) {
     console.log(err);
     console.log('zac登録失敗！');
   } finally {
-    await browser.close();
+    // await browser.close();
   }
 })();

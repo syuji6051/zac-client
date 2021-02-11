@@ -4,9 +4,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    environment:
-      IS_DOCKER: "true"
-      ENCRYPT_PASS_PHRASE: aa
+    env_file: .env
     command: yarn run dev
     cap_add:
       - SYS_ADMIN

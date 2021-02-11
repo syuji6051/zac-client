@@ -22,5 +22,5 @@ export type Work = {
 
 export class ZacClient {
   constructor(browser: puppeteer.Browser, userId: string, password: string, debug?: boolean);
-  register(param: ZacRegisterParams): void;
+  register(param: ZacRegisterParams): Promise<void>;
 }

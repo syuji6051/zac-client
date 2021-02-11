@@ -2,6 +2,8 @@
 node_modules
 jspm_packages
 .vscode
+.env
+yarn-error.log
 
 # Serverless directories
 .serverless

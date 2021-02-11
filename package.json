@@ -16,6 +16,7 @@
   "dependencies": {
     "ajv": "^6.12.6",
     "crypto-js": "^4.0.0",
+    "dayjs": "^1.9.7",
     "puppeteer-core": "^2.0.0",
     "winston": "^3.3.3"
   },

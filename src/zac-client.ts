@@ -7,7 +7,7 @@ import { Work, ZacRegisterParams } from './@types';
 
 const avg = Ajv();
 const logger = winston.createLogger();
-const ZAC_BASE_URL = 'https://secure.zac.ai/beex';
+const ZAC_BASE_URL = 'https://secure.zac.ai';
 
 const zacWorkSchema = {
   required: [
@@ -26,19 +26,20 @@ export default class ZacClient {
 
   page: puppeteer.Page;
 
+  zacBaseUrl: string;
+
   userId: string;
 
   password: string;
 
-  isOpenDialog: boolean;
-
   constructor(
-    browser: puppeteer.Browser, userId: string, password: string, debug: boolean = false,
+    browser: puppeteer.Browser,
+    tenantId: string, userId: string, password: string, debug: boolean = false,
   ) {
     this.browser = browser;
     this.userId = userId;
     this.password = password;
-    this.isOpenDialog = false;
+    this.zacBaseUrl = `${ZAC_BASE_URL}/${tenantId}`;
     logger.configure({
       level: debug ? 'debug' : 'info',
       format: winston.format.simple(),
@@ -55,13 +56,12 @@ export default class ZacClient {
       await func(params);
     } catch (e) {
       logger.error(e);
+      logger.error(e.stack);
       await this.page.screenshot({
         path: 'error.png',
         type: 'jpeg',
       });
-      throw new Error(e);
-    } finally {
-      this.close();
+      throw Error(e);
     }
   }
 
@@ -106,7 +106,7 @@ export default class ZacClient {
   }
 
   async login() {
-    await this.page.goto(`${ZAC_BASE_URL}/User/user_logon.asp`);
+    await this.page.goto(`${this.zacBaseUrl}/User/user_logon.asp`);
 
     const isSecureConsole = await this.page.$('input[id="Login1_UserName"]') !== null;
 
@@ -115,19 +115,22 @@ export default class ZacClient {
       await this.page.type('input[id="Login1_Password"]', this.password);
       await this.page.click('#Login1_LoginButton');
     }
+    logger.debug('secure console login success');
 
     await this.page.waitForXPath("//input[@name='user_name']");
     await this.page.waitForXPath("//input[@name='password']");
 
     logger.debug(isSecureConsole);
+    await this.page.waitFor(10);
     await this.page.type('input[name="password"]', this.password);
-    await this.page.click('#submit1');
+    console.log(this.password);
+    await this.page.click('button.cv-button');
     await this.page.waitForSelector('.top-main_inner');
     logger.info('login success');
   }
 
   private async getNippouFrame(workDate: Date): Promise<puppeteer.Frame> {
-    await this.page.goto(`${ZAC_BASE_URL}/b/asp/Shinsei/Nippou`);
+    await this.page.goto(`${this.zacBaseUrl}/b/asp/Shinsei/Nippou`);
     await this.page.waitForSelector('#classic_window');
     logger.info('nippou opened');
     const frames = this.page.frames();
@@ -150,27 +153,21 @@ export default class ZacClient {
     logger.info('month selected');
 
     await window.waitForNavigation({ timeout: 6000, waitUntil: 'domcontentloaded' });
-    logger.debug('day opened day:', workDate.getDate().toString());
+    logger.debug(`day opened day: ${workDate.getDate().toString()}`);
 
     const messages = await window.$$('a.link_cell');
-    logger.debug('messages count:', messages.length);
+    logger.debug(`messages count: ${messages.length}`);
 
     const daysEl = await Promise.all(messages.map(async (message) => message.getProperty('textContent')
       .then(async (res) => (await res.jsonValue() as string).trim())))
       .then((bits) => messages.filter((_, i) => {
         const days = bits[i] as string;
-        return days.match(new RegExp(workDate.getDate().toString()));
+        const wd = workDate.getDate();
+        const reg = new RegExp(`^${wd}$|^${wd}[ |\n]`).test(days);
+        logger.debug(`zac date list ${days}: ${reg}`);
+        return reg;
       }));
-
-    logger.debug('daysEl count', daysEl.length);
-
-    if (daysEl.length === 1) {
-      await daysEl[0].click();
-    } else if (workDate.getDate() <= 7) {
-      await daysEl[0].click();
-    } else {
-      await daysEl[1].click();
-    }
+    await daysEl[0].click();
 
     await window.waitForNavigation({ timeout: 10000, waitUntil: 'domcontentloaded' });
     logger.info('day selected');
@@ -197,7 +194,7 @@ export default class ZacClient {
   private async setWorkInputs(window: puppeteer.Frame, works: Work[]) {
     const maxRowCount = works.length < 5 ? 5 : Math.trunc(works.length / 5) * 5;
     // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       this.page.once('dialog', async (dialog) => {
         await dialog.accept();
         await window.waitForNavigation({ timeout: 10000, waitUntil: 'domcontentloaded' });
@@ -239,7 +236,7 @@ export default class ZacClient {
     await window.waitForSelector(`select[name="id_sagyou_naiyou${rowNum}"]`);
 
     await window.select(`select[name="id_sagyou_naiyou${rowNum}"]`, workCode);
-    logger.debug(`id_sagyou_naiyou${rowNum} selected`, code);
+    logger.debug(`id_sagyou_naiyou${rowNum} selected: ${code}`);
 
     if (workCode === '1') {
       await window.type(`input[name="code_project${rowNum}"]`, code);
@@ -263,7 +260,7 @@ export default class ZacClient {
   private async clickRegisterBtn(window: puppeteer.Frame, workDate: Date) {
     let isOpenDialog: boolean = false;
     // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       this.page.once('dialog', async (dialog) => {
         isOpenDialog = true;
         logger.info('dialog message:', dialog.message());
