@@ -3,7 +3,6 @@ import * as winston from 'winston';
 import Ajv from 'ajv';
 
 import { workList, WorkDiv } from './work-list';
-import { Work, ZacRegisterParams } from './@types';
 
 const avg = Ajv();
 const logger = winston.createLogger();
@@ -21,7 +20,26 @@ const zacWorkSchema = {
 };
 const zacWorkValidate = avg.compile(zacWorkSchema);
 
-export default class ZacClient {
+export type ZacRegisterParams = {
+  workDate: Date
+  workStartHour: number
+  workStartMinute: WorkMinute
+  workEndHour: number
+  workEndMinute: WorkMinute
+  workBreakHour: number
+  workBreakMinute: WorkMinute
+  works: Work[]
+}
+
+type WorkMinute = 0 | 15 | 30 | 45
+
+export type Work = {
+  hour: number;
+  minute: WorkMinute;
+  code: string;
+  text?: string;
+}
+export class ZacClient {
   browser: puppeteer.Browser;
 
   page: puppeteer.Page;

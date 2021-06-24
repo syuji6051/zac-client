@@ -19,3 +19,4 @@ error.png
 
 # output files
 dist
+src/execute.ts

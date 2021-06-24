@@ -2,6 +2,7 @@
   "name": "@syuji6051/zac-client",
   "version": "1.2.2",
   "main": "dist/index.js",
+  "types": "dist/index",
   "license": "MIT",
   "scripts": {
     "start": "ts-node src/execute.ts",
@@ -12,24 +13,23 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
-  "types": "./src/@types/index",
   "dependencies": {
     "ajv": "^6.12.6",
     "crypto-js": "^4.0.0",
     "dayjs": "^1.9.7",
-    "puppeteer-core": "^2.0.0",
+    "puppeteer-core": "^7.1.0",
     "winston": "^3.3.3"
   },
   "devDependencies": {
-    "@types/puppeteer": "^2.0.0",
-    "@types/puppeteer-core": "^2.0.0",
+    "@types/puppeteer": "^7.1.0",
+    "@types/puppeteer-core": "^7.1.0",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
     "eslint": "^7.13.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
     "nodemon": "^2.0.6",
-    "puppeteer": "^2.0.0",
+    "puppeteer": "^7.1.0",
     "ts-node": "^8.5.4",
     "tslint": "^5.20.1",
     "tslint-config-airbnb": "^5.11.2",
