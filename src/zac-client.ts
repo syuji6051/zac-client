@@ -80,6 +80,8 @@ export class ZacClient {
         type: 'jpeg',
       });
       throw Error(e);
+    } finally {
+      await this.close();
     }
   }
 
@@ -113,7 +115,6 @@ export class ZacClient {
 
   private async close() {
     await this.page.close();
-    await this.browser.close();
   }
 
   validation(params: ZacRegisterParams) {
