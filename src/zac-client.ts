@@ -79,7 +79,7 @@ export class ZacClient {
         path: 'error.png',
         type: 'jpeg',
       });
-      throw Error(e);
+      throw e;
     } finally {
       await this.close();
     }
@@ -285,8 +285,8 @@ export class ZacClient {
         logger.debug(dialog);
         const message = dialog.message();
         logger.info(`dialog message: ${message}`);
-        if (message) return reject(message);
         await dialog.accept();
+        if (message) return reject(message);
         await window.waitForNavigation({ timeout: 10000, waitUntil: 'domcontentloaded' });
         return resolve();
       });
