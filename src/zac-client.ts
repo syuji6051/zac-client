@@ -282,8 +282,10 @@ export class ZacClient {
     return new Promise<void>(async (resolve, reject) => {
       this.page.once('dialog', async (dialog) => {
         isOpenDialog = true;
-        logger.info('dialog message:', dialog.message());
-        if (dialog.message) return reject(dialog.message);
+        logger.debug(dialog);
+        const message = dialog.message();
+        logger.info(`dialog message: ${message}`);
+        if (message) return reject(message);
         await dialog.accept();
         await window.waitForNavigation({ timeout: 10000, waitUntil: 'domcontentloaded' });
         return resolve();
