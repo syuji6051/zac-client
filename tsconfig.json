@@ -1,5 +1,11 @@
 {
   "compilerOptions": {
+    "baseUrl": "./",
+    "declaration": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
     "target": "ES2018",
     "module": "commonjs",
     "lib": [
@@ -10,11 +16,6 @@
     "outDir": "./dist",
     "strict": true,
     "strictPropertyInitialization": false,
-    "baseUrl": "./",
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "moduleResolution":"node"
   }
