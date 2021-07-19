@@ -11,10 +11,6 @@
     "strict": true,
     "strictPropertyInitialization": false,
     "baseUrl": "./",
-    "paths": {
-      "@/*": ["*"]
-    },
-    "rootDir": "src/",
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
