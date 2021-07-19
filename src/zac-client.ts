@@ -1,44 +1,16 @@
 import * as puppeteer from 'puppeteer-core';
 import * as winston from 'winston';
-import Ajv from 'ajv';
-
+import { validation } from '@syuji6051/zac-job-library';
 import { workList, WorkDiv } from './work-list';
+import { loginValidation } from './validations/login';
+import { registerValidation } from './validations/register';
+import { Work, ZacRegisterParams } from './entities/zac';
 
-const avg = Ajv();
 const logger = winston.createLogger();
 const ZAC_BASE_URL = 'https://secure.zac.ai';
+const WAIT_TIMEOUT = 3000;
 
-const zacWorkSchema = {
-  required: [
-    'workDate',
-    'workStartHour',
-    'workStartMinute',
-    'workEndHour',
-    'workEndMinute',
-  ],
-  type: 'object',
-};
-const zacWorkValidate = avg.compile(zacWorkSchema);
-
-export type ZacRegisterParams = {
-  workDate: Date
-  workStartHour: number
-  workStartMinute: WorkMinute
-  workEndHour: number
-  workEndMinute: WorkMinute
-  workBreakHour: number
-  workBreakMinute: WorkMinute
-  works: Work[]
-}
-
-type WorkMinute = 0 | 15 | 30 | 45
-
-export type Work = {
-  hour: number;
-  minute: WorkMinute;
-  code: string;
-  text?: string;
-}
+// eslint-disable-next-line import/prefer-default-export
 export class ZacClient {
   browser: puppeteer.Browser;
 
@@ -50,14 +22,12 @@ export class ZacClient {
 
   password: string;
 
+  tenantId: string;
+
   constructor(
     browser: puppeteer.Browser,
     tenantId: string, userId: string, password: string, debug: boolean = false,
   ) {
-    this.browser = browser;
-    this.userId = userId;
-    this.password = password;
-    this.zacBaseUrl = `${ZAC_BASE_URL}/${tenantId}`;
     logger.configure({
       level: debug ? 'debug' : 'info',
       format: winston.format.simple(),
@@ -65,6 +35,14 @@ export class ZacClient {
         new winston.transports.Console(),
       ],
     });
+    validation.check(loginValidation, {
+      tenantId, userId, password,
+    });
+    this.browser = browser;
+    this.tenantId = tenantId;
+    this.userId = userId;
+    this.password = password;
+    this.zacBaseUrl = `${ZAC_BASE_URL}/${tenantId}`;
   }
 
   protected async zacVoidFunction(func: Function, params: ZacRegisterParams): Promise<void> {
@@ -81,12 +59,12 @@ export class ZacClient {
       });
       throw e;
     } finally {
-      await this.close();
+      // await this.close();
     }
   }
 
   public async register(params: ZacRegisterParams) {
-    this.validation(params);
+    validation.check(registerValidation, params);
     await this.zacVoidFunction(this.innerRegister.bind(this), params);
   }
 
@@ -97,31 +75,12 @@ export class ZacClient {
     await this.clickRegisterBtn(frame, params.workDate);
   }
 
-  // public bulkRegister() {
-
-  // }
-
-  // public getResult() {
-
-  // }
-
-  // public getMonthResults() {
-
-  // }
-
   private async open() {
     this.page = await this.browser.newPage();
   }
 
   private async close() {
     await this.page.close();
-  }
-
-  validation(params: ZacRegisterParams) {
-    const valid = zacWorkValidate(params);
-    console.log(params);
-    // const workAll = params.works.reduce((pre, cur) => pre += cur.hour * 60 + cur.minute, 0);
-    if (!valid) throw new Error('not require parameter');
   }
 
   async login() {
@@ -135,12 +94,14 @@ export class ZacClient {
       await this.page.click('#Login1_LoginButton');
     }
     logger.debug('secure console login success');
-
-    await this.page.waitForXPath("//input[@name='user_name']");
-    await this.page.waitForXPath("//input[@name='password']");
+    await this.page.waitFor('input[id="username"]', {
+      timeout: WAIT_TIMEOUT,
+    });
+    await this.page.waitFor('input[id="password"]', {
+      timeout: WAIT_TIMEOUT,
+    });
 
     logger.debug(isSecureConsole);
-    await this.page.waitFor(10);
     await this.page.type('input[name="password"]', this.password);
     console.log(this.password);
     await this.page.click('button.cv-button');
@@ -164,8 +125,10 @@ export class ZacClient {
 
     await window.waitForSelector('input[name="year_schedule"]');
     const yearInput = await window.$('input[name="year_schedule"]');
-    await yearInput.click({ clickCount: 3 });
-    await yearInput.type(workDate.getFullYear().toString());
+    if (yearInput !== null) {
+      await yearInput.click({ clickCount: 3 });
+      await yearInput.type(workDate.getFullYear().toString());
+    }
 
     await window.waitForXPath('//select[@name=\'month_schedule\']');
     await window.select('select[name="month_schedule"]', (workDate.getMonth() + 1).toString());
@@ -270,9 +233,11 @@ export class ZacClient {
 
     if (text !== undefined) {
       const textArea = await window.$(`textarea[name="memo${rowNum}"]`);
-      await textArea.click({ clickCount: 3 });
-      await textArea.type(text);
-      logger.info('memo typed');
+      if (textArea !== null) {
+        await textArea.click({ clickCount: 3 });
+        await textArea.type(text);
+        logger.info('memo typed');
+      }
     }
   }
 

@@ -1,16 +1,25 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
-    "declaration": true,
-    "sourceMap": true,
+    "target": "ES2018",
     "module": "commonjs",
-    "target": "es6",
-    "moduleResolution": "node",
-    "removeComments": true,
-    "esModuleInterop": true,
+    "lib": [
+      "ES2018",
+      "DOM"
+    ],
+    "sourceMap": true,
+    "outDir": "./dist",
+    "strict": true,
+    "strictPropertyInitialization": false,
     "baseUrl": "./",
-  },
-  "include": [
-    "./src/**/*"
-  ]
+    "paths": {
+      "@/*": ["*"]
+    },
+    "rootDir": "src/",
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution":"node"
+  }
 }

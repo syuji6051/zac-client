@@ -5,8 +5,9 @@
   "types": "dist/index",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node src/execute.ts",
+    "start": "ts-node src/sample/sample.ts",
     "build": "tsc",
+    "generate": "typescript-json-schema --strictNullChecks --noExtraProps --required",
     "dev": "nodemon",
     "ts-node": "ts-node"
   },
@@ -14,26 +15,29 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "dependencies": {
+    "@syuji6051/zac-job-library": "^1.0.15",
     "ajv": "^6.12.6",
     "crypto-js": "^4.0.0",
     "dayjs": "^1.9.7",
-    "puppeteer-core": "^7.1.0",
+    "puppeteer": "5.2.1",
+    "puppeteer-core": "^2.0.0",
     "winston": "^3.3.3"
   },
   "devDependencies": {
-    "@types/puppeteer-core": "^5.4.0",
+    "@types/puppeteer": "^2.0.0",
+    "@types/puppeteer-core": "^2.0.0",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
-    "eslint": "^7.13.0",
-    "eslint-config-airbnb-base": "^14.2.1",
+    "dotenv": "^10.0.0",
+    "eslint": "^7.16.0",
     "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-prettier": "^3.3.0",
     "nodemon": "^2.0.6",
     "puppeteer": "^7.1.0",
     "ts-node": "^8.5.4",
     "tslint": "^5.20.1",
-    "tslint-config-airbnb": "^5.11.2",
     "tslint-config-prettier": "^1.18.0",
-    "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "^3.7.4"
+    "tslint-plugin-prettier": "^2.3.0",
+    "typescript": "^4.1.3"
   }
 }
