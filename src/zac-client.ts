@@ -8,7 +8,7 @@ import { Work, ZacRegisterParams } from './entities/zac';
 
 const logger = winston.createLogger();
 const ZAC_BASE_URL = 'https://secure.zac.ai';
-const WAIT_TIMEOUT = 3000;
+const WAIT_TIMEOUT = 5000;
 
 // eslint-disable-next-line import/prefer-default-export
 export class ZacClient {
@@ -59,7 +59,7 @@ export class ZacClient {
       });
       throw e;
     } finally {
-      // await this.close();
+      await this.close();
     }
   }
 
@@ -94,9 +94,7 @@ export class ZacClient {
       await this.page.click('#Login1_LoginButton');
     }
     logger.debug('secure console login success');
-    await this.page.waitFor('input[id="username"]', {
-      timeout: WAIT_TIMEOUT,
-    });
+    await this.page.waitFor(500);
     await this.page.waitFor('input[id="password"]', {
       timeout: WAIT_TIMEOUT,
     });
@@ -105,7 +103,9 @@ export class ZacClient {
     await this.page.type('input[name="password"]', this.password);
     console.log(this.password);
     await this.page.click('button.cv-button');
-    await this.page.waitForSelector('.top-main_inner');
+    await this.page.waitForSelector('.top-main_inner', {
+      timeout: WAIT_TIMEOUT,
+    });
     logger.info('login success');
   }
 
@@ -149,7 +149,8 @@ export class ZacClient {
         logger.debug(`zac date list ${days}: ${reg}`);
         return reg;
       }));
-    await daysEl[0].click();
+    const selectedCalender = (daysEl.length > 1 && workDate.getDate() >= 25) ? 1 : 0; 
+    await daysEl[selectedCalender].click();
 
     await window.waitForNavigation({ timeout: 10000, waitUntil: 'domcontentloaded' });
     logger.info('day selected');
@@ -212,10 +213,12 @@ export class ZacClient {
     const {
       code, hour, minute, text,
     } = work;
-    logger.info('order code execute', code, 'rowNumber', rowNum);
+    logger.info(`order code execute: ${code} rowNumber ${rowNum}`);
 
     const workCode = getWorkDiv(code);
-    await window.waitForSelector(`select[name="id_sagyou_naiyou${rowNum}"]`);
+    await window.waitForSelector(`select[name="id_sagyou_naiyou${rowNum}"]`, {
+      timeout: WAIT_TIMEOUT,
+    });
 
     await window.select(`select[name="id_sagyou_naiyou${rowNum}"]`, workCode);
     logger.debug(`id_sagyou_naiyou${rowNum} selected: ${code}`);

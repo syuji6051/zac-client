@@ -27,16 +27,16 @@ const IS_DOCKER = process.env.IS_DOCKER === 'true';
   const zac = new ZacClient(browser, TENANT_ID, USER_ID, PASSWORD, true);
   try {
     zac.register({
-      workDate: dayjs('2021-07-16').toDate(),
+      workDate: dayjs('2021-07-28').toDate(),
       workStartHour: 9,
-      workStartMinute: 30,
-      workEndHour: 17,
+      workStartMinute: 45,
+      workEndHour: 18,
       workEndMinute: 45,
-      workBreakHour: 1,
-      workBreakMinute: 0,
+      workBreakHour: 2,
+      workBreakMinute: 45,
       works: [{
         code: CODE!,
-        hour: 7,
+        hour: 6,
         minute: 15,
       }],
     });
