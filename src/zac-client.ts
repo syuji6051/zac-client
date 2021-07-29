@@ -84,24 +84,20 @@ export class ZacClient {
   }
 
   async login() {
+    await this.page.goto(`${this.zacBaseUrl}/Logon.aspx`);
+
+    await this.page.type('input[id="Login1_UserName"]', this.userId);
+    await this.page.type('input[id="Login1_Password"]', this.password);
+    await this.page.click('#Login1_LoginButton');
+    await this.page.waitFor(500);
+    logger.debug('secure console login success');
     await this.page.goto(`${this.zacBaseUrl}/User/user_logon.asp`);
 
-    const isSecureConsole = await this.page.$('input[id="Login1_UserName"]') !== null;
-
-    if (isSecureConsole) {
-      await this.page.type('input[id="Login1_UserName"]', this.userId);
-      await this.page.type('input[id="Login1_Password"]', this.password);
-      await this.page.click('#Login1_LoginButton');
-    }
-    logger.debug('secure console login success');
-    await this.page.waitFor(500);
-    await this.page.waitFor('input[id="password"]', {
-      timeout: WAIT_TIMEOUT,
-    });
-
-    logger.debug(isSecureConsole);
-    await this.page.type('input[name="password"]', this.password);
-    console.log(this.password);
+    // await this.page.waitFor(50000);
+    const userNameFiled = await this.page.$('input[id="username"]');
+    await userNameFiled!.click({ clickCount: 3 });
+    await userNameFiled!.type(this.userId);
+    await this.page.type('input[id="password"]', this.password);
     await this.page.click('button.cv-button');
     await this.page.waitForSelector('.top-main_inner', {
       timeout: WAIT_TIMEOUT,
