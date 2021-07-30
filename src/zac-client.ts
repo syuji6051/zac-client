@@ -9,7 +9,7 @@ import { Work, ZacRegisterParams } from './entities/zac';
 const logger = winston.createLogger();
 const ZAC_BASE_URL = 'https://secure.zac.ai';
 const WAIT_TIMEOUT = 5000;
-
+const MAX_RETRY_COUNT = 3;
 // eslint-disable-next-line import/prefer-default-export
 export class ZacClient {
   browser: puppeteer.Browser;
@@ -84,6 +84,17 @@ export class ZacClient {
   }
 
   async login() {
+    for (const retries of [...Array(MAX_RETRY_COUNT).keys()]) {
+      try {
+        await this.innerLogin();
+        return;
+      } catch (err) {
+        logger.info(`zac login error. retry count: ${retries}`);
+      }  
+    }
+  }
+
+  async innerLogin() {
     await this.page.goto(`${this.zacBaseUrl}/Logon.aspx`);
 
     await this.page.type('input[id="Login1_UserName"]', this.userId);
@@ -93,7 +104,10 @@ export class ZacClient {
     logger.debug('secure console login success');
     await this.page.goto(`${this.zacBaseUrl}/User/user_logon.asp`);
 
-    // await this.page.waitFor(50000);
+    await this.page.waitFor('input[id="username"]', {
+      timeout: WAIT_TIMEOUT,
+    });
+
     const userNameFiled = await this.page.$('input[id="username"]');
     await userNameFiled!.click({ clickCount: 3 });
     await userNameFiled!.type(this.userId);

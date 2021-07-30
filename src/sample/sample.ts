@@ -14,6 +14,7 @@ const IS_DOCKER = process.env.IS_DOCKER === 'true';
   const browser = await puppeteer.launch(IS_DOCKER ? {
     headless: true,
     args: [
+      '--no-sandbox', '--disable-setuid-sandbox'
     ],
   } : {
     headless: false,
@@ -27,17 +28,17 @@ const IS_DOCKER = process.env.IS_DOCKER === 'true';
   const zac = new ZacClient(browser, TENANT_ID, USER_ID, PASSWORD, true);
   try {
     zac.register({
-      workDate: dayjs('2021-07-28').toDate(),
+      workDate: dayjs('2021-07-29').toDate(),
       workStartHour: 9,
       workStartMinute: 45,
       workEndHour: 18,
-      workEndMinute: 45,
-      workBreakHour: 2,
+      workEndMinute: 0,
+      workBreakHour: 0,
       workBreakMinute: 45,
       works: [{
         code: CODE!,
-        hour: 6,
-        minute: 15,
+        hour: 7,
+        minute: 30,
       }],
     });
   } catch (err) {
