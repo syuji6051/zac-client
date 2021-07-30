@@ -90,6 +90,7 @@ export class ZacClient {
         await this.innerLogin();
         return;
       } catch (err) {
+        logger.error(err.stack);
         logger.info(`zac login error. retry count: ${retries}`);
       }  
     }
@@ -115,7 +116,7 @@ export class ZacClient {
     await this.page.type('input[id="password"]', this.password);
     await this.page.click('button.cv-button');
     await this.page.waitForSelector('.top-main_inner', {
-      timeout: LOGIN_WAIT_TIME,
+      timeout: WAIT_TIMEOUT,
     });
     logger.info('login success');
   }
