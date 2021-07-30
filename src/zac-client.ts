@@ -8,6 +8,7 @@ import { Work, ZacRegisterParams } from './entities/zac';
 
 const logger = winston.createLogger();
 const ZAC_BASE_URL = 'https://secure.zac.ai';
+const LOGIN_WAIT_TIME = 1000;
 const WAIT_TIMEOUT = 5000;
 const MAX_RETRY_COUNT = 3;
 // eslint-disable-next-line import/prefer-default-export
@@ -100,12 +101,12 @@ export class ZacClient {
     await this.page.type('input[id="Login1_UserName"]', this.userId);
     await this.page.type('input[id="Login1_Password"]', this.password);
     await this.page.click('#Login1_LoginButton');
-    await this.page.waitFor(500);
+    await waitTimeout(200);
     logger.debug('secure console login success');
     await this.page.goto(`${this.zacBaseUrl}/User/user_logon.asp`);
 
-    await this.page.waitFor('input[id="username"]', {
-      timeout: WAIT_TIMEOUT,
+    await this.page.waitForSelector('input[id="username"]', {
+      timeout: LOGIN_WAIT_TIME,
     });
 
     const userNameFiled = await this.page.$('input[id="username"]');
@@ -114,7 +115,7 @@ export class ZacClient {
     await this.page.type('input[id="password"]', this.password);
     await this.page.click('button.cv-button');
     await this.page.waitForSelector('.top-main_inner', {
-      timeout: WAIT_TIMEOUT,
+      timeout: LOGIN_WAIT_TIME,
     });
     logger.info('login success');
   }
@@ -283,4 +284,8 @@ export class ZacClient {
 function getWorkDiv(code: string) {
   const work = workList.find((w) => w.code === code);
   return work === undefined ? WorkDiv.normalWork : work.workDiv;
+}
+
+function waitTimeout(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(() => resolve(), ms))
 }
