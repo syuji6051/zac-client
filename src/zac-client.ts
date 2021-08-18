@@ -8,8 +8,6 @@ import { Work, ZacRegisterParams } from './entities/zac';
 
 const logger = winston.createLogger();
 const ZAC_BASE_URL = 'https://secure.zac.ai';
-const LOGIN_WAIT_TIME = 1000;
-const WAIT_TIMEOUT = 5000;
 const MAX_RETRY_COUNT = 3;
 // eslint-disable-next-line import/prefer-default-export
 export class ZacClient {
@@ -106,18 +104,14 @@ export class ZacClient {
     logger.debug('secure console login success');
     await this.page.goto(`${this.zacBaseUrl}/User/user_logon.asp`);
 
-    await this.page.waitForSelector('input[id="username"]', {
-      timeout: LOGIN_WAIT_TIME,
-    });
+    await this.page.waitForSelector('input[id="username"]');
 
     const userNameFiled = await this.page.$('input[id="username"]');
-    await userNameFiled!.click({ clickCount: 3 });
-    await userNameFiled!.type(this.userId);
+    await userNameFiled?.click({ clickCount: 3 });
+    await userNameFiled?.type(this.userId);
     await this.page.type('input[id="password"]', this.password);
     await this.page.click('button.cv-button');
-    await this.page.waitForSelector('.top-main_inner', {
-      timeout: WAIT_TIMEOUT,
-    });
+    await this.page.waitForSelector('.top-main_inner');
     logger.info('login success');
   }
 
@@ -228,9 +222,7 @@ export class ZacClient {
     logger.info(`order code execute: ${code} rowNumber ${rowNum}`);
 
     const workCode = getWorkDiv(code);
-    await window.waitForSelector(`select[name="id_sagyou_naiyou${rowNum}"]`, {
-      timeout: WAIT_TIMEOUT,
-    });
+    await window.waitForSelector(`select[name="id_sagyou_naiyou${rowNum}"]`);
 
     await window.select(`select[name="id_sagyou_naiyou${rowNum}"]`, workCode);
     logger.debug(`id_sagyou_naiyou${rowNum} selected: ${code}`);
