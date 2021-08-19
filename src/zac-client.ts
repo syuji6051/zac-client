@@ -264,8 +264,9 @@ export class ZacClient {
       });
       await window.click('#button7');
       logger.info('button7 clicked');
-      process.nextTick(() => {
+      process.nextTick(async () => {
         if (!isOpenDialog) {
+          await window.waitForNavigation({ timeout: 10000, waitUntil: 'domcontentloaded' });
           logger.info(`work register success workDate=${workDate}`);
           resolve();
         }
