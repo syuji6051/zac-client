@@ -15,7 +15,7 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "dependencies": {
-    "@syuji6051/zac-job-library": "^1.0.15",
+    "@syuji6051/zac-job-library": "^1.0.18",
     "ajv": "^6.12.6",
     "crypto-js": "^4.0.0",
     "dayjs": "^1.9.7",

@@ -1,14 +1,17 @@
 import * as puppeteer from 'puppeteer-core';
 import * as winston from 'winston';
-import { validation } from '@syuji6051/zac-job-library';
+import * as fs from 'fs';
+import { validation, s3 } from '@syuji6051/zac-job-library';
 import { workList, WorkDiv } from './work-list';
 import { loginValidation } from './validations/login';
 import { registerValidation } from './validations/register';
 import { Work, ZacRegisterParams } from './entities/zac';
+import dayjs from 'dayjs';
 
 const logger = winston.createLogger();
 const ZAC_BASE_URL = 'https://secure.zac.ai';
 const MAX_RETRY_COUNT = 3;
+
 // eslint-disable-next-line import/prefer-default-export
 export class ZacClient {
   browser: puppeteer.Browser;
@@ -23,9 +26,11 @@ export class ZacClient {
 
   tenantId: string;
 
+  errorBucketName: string | undefined;
+
   constructor(
     browser: puppeteer.Browser,
-    tenantId: string, userId: string, password: string, debug: boolean = false,
+    tenantId: string, userId: string, password: string, debug: boolean = false, errorBucketName?: string
   ) {
     logger.configure({
       level: debug ? 'debug' : 'info',
@@ -42,6 +47,7 @@ export class ZacClient {
     this.userId = userId;
     this.password = password;
     this.zacBaseUrl = `${ZAC_BASE_URL}/${tenantId}`;
+    this.errorBucketName = errorBucketName;
   }
 
   protected async zacVoidFunction(func: Function, params: ZacRegisterParams): Promise<void> {
@@ -52,10 +58,20 @@ export class ZacClient {
     } catch (e) {
       logger.error(e);
       logger.error(e.stack);
+      const dir = process.env.AWS_LAMBDA_FUNCTION_VERSION ?　'/tmp/': '';
+      const path = `${dir}error.png`;
       await this.page.screenshot({
-        path: 'error.png',
+        path,
         type: 'jpeg',
       });
+      const now = dayjs();
+      const day = now.format('YYYY-MM-DD');
+      const time = now.format('HH_mm_ss_SS');
+      if (this.errorBucketName) await s3.s3instance.putObject({
+        Bucket: this.errorBucketName,
+        Key: `${day}/${time}.png`,
+        Body: fs.readFileSync(path),
+      }).promise()
       throw e;
     } finally {
       await this.close();
@@ -83,36 +99,29 @@ export class ZacClient {
   }
 
   async login() {
-    for (const retries of [...Array(MAX_RETRY_COUNT).keys()]) {
-      try {
-        await this.innerLogin();
-        return;
-      } catch (err) {
-        logger.error(err.stack);
-        logger.info(`zac login error. retry count: ${retries}`);
-      }  
-    }
-  }
-
-  async innerLogin() {
-    await this.page.goto(`${this.zacBaseUrl}/Logon.aspx`);
-
-    await this.page.type('input[id="Login1_UserName"]', this.userId);
-    await this.page.type('input[id="Login1_Password"]', this.password);
-    await this.page.click('#Login1_LoginButton');
-    await waitTimeout(200);
-    logger.debug('secure console login success');
-    await this.page.goto(`${this.zacBaseUrl}/User/user_logon.asp`);
-
-    await this.page.waitForSelector('input[id="username"]');
-
-    const userNameFiled = await this.page.$('input[id="username"]');
-    await userNameFiled?.click({ clickCount: 3 });
-    await userNameFiled?.type(this.userId);
-    await this.page.type('input[id="password"]', this.password);
-    await this.page.click('button.cv-button');
-    await this.page.waitForSelector('.top-main_inner');
-    logger.info('login success');
+    try {
+      await this.page.goto(`${this.zacBaseUrl}/Logon.aspx`);
+      await this.page.waitForSelector('input[id="Login1_UserName"]');
+  
+      await this.page.type('input[id="Login1_UserName"]', this.userId);
+      await this.page.type('input[id="Login1_Password"]', this.password);
+      await this.page.click('#Login1_LoginButton');
+  
+      await this.page.waitForSelector('input[id="username"]');
+      await this.page.goto(`${this.zacBaseUrl}/User/user_logon.asp`);
+      logger.debug('secure console login success');
+  
+      const userNameFiled = await this.page.$('input[id="username"]');
+      await userNameFiled?.click({ clickCount: 3 });
+      await userNameFiled?.type(this.userId);
+      await this.page.type('input[id="password"]', this.password);
+      await this.page.click('button.cv-button');
+      await this.page.waitForSelector('.top-main_inner');
+      logger.info('login success');
+    } catch (err) {
+      logger.error(err.stack);
+      logger.info(`zac login error.`);
+    }  
   }
 
   private async getNippouFrame(workDate: Date): Promise<puppeteer.Frame> {

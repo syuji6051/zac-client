@@ -25,10 +25,10 @@ const IS_DOCKER = process.env.IS_DOCKER === 'true';
   if (TENANT_ID === undefined || USER_ID === undefined || PASSWORD === undefined) {
     throw new TypeError('TENANT_ID');
   }
-  const zac = new ZacClient(browser, TENANT_ID, USER_ID, PASSWORD, true);
+  const zac = new ZacClient(browser, TENANT_ID, USER_ID, PASSWORD, true, 'zac-work-input-capture');
   try {
     zac.register({
-      workDate: dayjs('2021-07-29').toDate(),
+      workDate: dayjs('2021-08-20').toDate(),
       workStartHour: 9,
       workStartMinute: 45,
       workEndHour: 18,
