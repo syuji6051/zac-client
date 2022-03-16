@@ -1,18 +1,15 @@
 import * as puppeteer from 'puppeteer-core';
 import * as winston from 'winston';
 import * as fs from 'fs';
+import { zac } from '@syuji6051/zac-job-interface';
 import { validation, s3 } from '@syuji6051/zac-job-library';
+
 import { workList, WorkDiv } from './work-list';
-import { loginValidation } from './validations/login';
-import { registerValidation } from './validations/register';
-import { Work, ZacRegisterParams } from './entities/zac';
 import dayjs from 'dayjs';
 
 const logger = winston.createLogger();
 const ZAC_BASE_URL = 'https://secure.zac.ai';
-const MAX_RETRY_COUNT = 3;
 
-// eslint-disable-next-line import/prefer-default-export
 export class ZacClient {
   browser: puppeteer.Browser;
 
@@ -30,7 +27,7 @@ export class ZacClient {
 
   constructor(
     browser: puppeteer.Browser,
-    tenantId: string, userId: string, password: string, debug: boolean = false, errorBucketName?: string
+    user: zac.ZacSignedInput, debug: boolean = false, errorBucketName?: string
   ) {
     logger.configure({
       level: debug ? 'debug' : 'info',
@@ -39,51 +36,52 @@ export class ZacClient {
         new winston.transports.Console(),
       ],
     });
-    validation.check(loginValidation, {
-      tenantId, userId, password,
-    });
+    const { zacLoginId, zacPassword, zacTenantId } = validation.check(zac.zZacSignedInput, user);
     this.browser = browser;
-    this.tenantId = tenantId;
-    this.userId = userId;
-    this.password = password;
-    this.zacBaseUrl = `${ZAC_BASE_URL}/${tenantId}`;
+    this.tenantId = zacTenantId;
+    this.userId = zacLoginId;
+    this.password = zacPassword;
+    this.zacBaseUrl = `${ZAC_BASE_URL}/${this.tenantId}`;
     this.errorBucketName = errorBucketName;
   }
 
-  protected async zacVoidFunction(func: Function, params: ZacRegisterParams): Promise<void> {
+  protected async zacVoidFunction(func: Function, params: zac.ZacRegisterInput): Promise<void> {
     try {
       await this.open();
       await this.login();
       await func(params);
     } catch (e) {
-      logger.error(e);
-      logger.error(e.stack);
-      const dir = process.env.AWS_LAMBDA_FUNCTION_VERSION ?　'/tmp/': '';
-      const path = `${dir}error.png`;
-      await this.page.screenshot({
-        path,
-        type: 'jpeg',
-      });
-      const now = dayjs();
-      const day = now.format('YYYY-MM-DD');
-      const time = now.format('HH_mm_ss_SS');
-      if (this.errorBucketName) await s3.s3instance.putObject({
-        Bucket: this.errorBucketName,
-        Key: `${day}/${time}.png`,
-        Body: fs.readFileSync(path),
-      }).promise()
+      if (e instanceof Error) {
+        logger.error(e);
+        logger.error(e.stack);
+        const dir = process.env.AWS_LAMBDA_FUNCTION_VERSION ? '/tmp/': '';
+        const path = `${dir}error.png`;
+        await this.page.screenshot({
+          path,
+          type: 'jpeg',
+        });
+        const now = dayjs();
+        const day = now.format('YYYY-MM-DD');
+        const time = now.format('HH_mm_ss_SS');
+        if (this.errorBucketName) await s3.s3instance.putObject({
+          Bucket: this.errorBucketName,
+          Key: `${day}/${time}.png`,
+          Body: fs.readFileSync(path),
+        }).promise();
+      }
       throw e;
     } finally {
       await this.close();
     }
   }
 
-  public async register(params: ZacRegisterParams) {
-    validation.check(registerValidation, params);
-    await this.zacVoidFunction(this.innerRegister.bind(this), params);
+  public async register(params: zac.ZacRegisterInput) {
+
+    const work = validation.check(zac.zZacRegisterInput, params);
+    await this.zacVoidFunction(this.innerRegister.bind(this), work);
   }
 
-  private async innerRegister(params: ZacRegisterParams) {
+  private async innerRegister(params: zac.ZacRegisterInput) {
     const frame = await this.getNippouFrame(params.workDate);
     await this.selectWorkDate(frame, params);
     await this.setWorkInputs(frame, params.works);
@@ -119,9 +117,12 @@ export class ZacClient {
       await this.page.waitForSelector('.top-main_inner');
       logger.info('login success');
     } catch (err) {
-      logger.error(err.stack);
-      logger.info(`zac login error.`);
-    }  
+      if (err instanceof Error) {
+        logger.error(err.stack);
+        logger.info(`zac login error.`);  
+      }
+      throw err;
+    }
   }
 
   private async getNippouFrame(workDate: Date): Promise<puppeteer.Frame> {
@@ -172,7 +173,7 @@ export class ZacClient {
     return window;
   }
 
-  async selectWorkDate(window: puppeteer.Frame, params: ZacRegisterParams) {
+  async selectWorkDate(window: puppeteer.Frame, params: zac.ZacRegisterInput) {
     const {
       workStartHour, workStartMinute, workEndHour, workEndMinute, workBreakHour, workBreakMinute,
     } = params;
@@ -189,7 +190,7 @@ export class ZacClient {
     logger.info('time_break_input selected');
   }
 
-  private async setWorkInputs(window: puppeteer.Frame, works: Work[]) {
+  private async setWorkInputs(window: puppeteer.Frame, works: zac.Work[]) {
     const maxRowCount = works.length < 5 ? 5 : Math.trunc(works.length / 5) * 5;
     // eslint-disable-next-line no-async-promise-executor
     return new Promise<void>(async (resolve, reject) => {
@@ -224,7 +225,7 @@ export class ZacClient {
     logger.info(`select[name="id_sagyou_naiyou${rowNum}"] clear`);
   }
 
-  private async setWorkInput(window: puppeteer.Frame, work: Work, rowNum: number) {
+  private async setWorkInput(window: puppeteer.Frame, work: zac.Work, rowNum: number) {
     const {
       code, hour, minute, text,
     } = work;
