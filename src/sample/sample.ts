@@ -7,7 +7,7 @@ import { ZacClient } from '../zac-client';
 dotenv.config();
 console.log(puppeteer);
 
-const IS_DOCKER = process.env.IS_DOCKER === 'true';
+const { TENANT_ID, USER_ID, PASSWORD, CODE, IS_DOCKER = true } = process.env;
 
 (async () => {
   console.log(IS_DOCKER);
@@ -21,7 +21,6 @@ const IS_DOCKER = process.env.IS_DOCKER === 'true';
   });
 
   console.log('call start');
-  const { TENANT_ID, USER_ID, PASSWORD, CODE } = process.env;
   if (TENANT_ID === undefined || USER_ID === undefined || PASSWORD === undefined) {
     throw new TypeError('TENANT_ID');
   }
@@ -33,13 +32,13 @@ const IS_DOCKER = process.env.IS_DOCKER === 'true';
 
   try {
     zac.register({
-      workDate: dayjs('2021-08-20').toDate(),
+      workDate: dayjs('2023-01-27').toDate(),
       workStartHour: 9,
-      workStartMinute: '45',
+      workStartMinute: '30',
       workEndHour: 18,
       workEndMinute: '0',
-      workBreakHour: 0,
-      workBreakMinute: '45',
+      workBreakHour: 1,
+      workBreakMinute: '0',
       works: [{
         code: CODE!,
         hour: 7,
